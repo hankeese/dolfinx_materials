@@ -87,9 +87,9 @@ class MFrontMaterial:
         if self.is_finite_strain:
             # finite strain options
             bopts = mgis_bv.FiniteStrainBehaviourOptions()
-            bopts.stress_measure = mgis_bv.FiniteStrainBehaviourOptionsStressMeasure.PK1
+            bopts.stress_measure = mgis_bv.FiniteStrainBehaviourOptionsStressMeasure.PK2
             bopts.tangent_operator = (
-                mgis_bv.FiniteStrainBehaviourOptionsTangentOperator.DPK1_DF
+                mgis_bv.FiniteStrainBehaviourOptionsTangentOperator.DS_DEGL
             )
             self.behaviour = mgis_bv.load(bopts, path, self.name, self.hypothesis)
         else:
