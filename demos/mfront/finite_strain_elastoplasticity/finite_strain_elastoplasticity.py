@@ -73,6 +73,7 @@
 
 # +
 import numpy as np
+import dolfinx as dolx
 import matplotlib.pyplot as plt
 import os
 import ufl
@@ -87,11 +88,14 @@ from dolfinx_materials.utils import (
     nonsymmetric_tensor_to_vector,
 )
 
+dolx.log.set_log_level(dolx.log.LogLevel.INFO)
+
 
 comm = MPI.COMM_WORLD
 rank = comm.rank
 
 current_path = os.getcwd()
+print(current_path)
 
 length, width, height = 1.0, 0.04, 0.1
 nx, ny, nz = 20, 4, 6
@@ -136,9 +140,9 @@ u = fem.Function(V, name="Displacement")
 # The `MFrontMaterial` instance is loaded from the `MFront` `LogarithmicStrainPlasticity` behavior. This behavior is a finite-strain behavior (`material.is_finite_strain=True`) which relies on a kinematic description using the total deformation gradient $\boldsymbol{F}$. By default, a `MFront` behavior always returns the Cauchy stress as the stress measure after integration. However, the stress variable dual to the deformation gradient is the first Piola-Kirchhoff (PK1) stress. An internal option of the MGIS interface is therefore used in the finite-strain context to return the PK1 stress as the "flux" associated to the "gradient" $\boldsymbol{F}$. Both quantities are non-symmetric tensors, aranged as a 9-dimensional vector in 3D following [`MFront` conventions on tensors](https://thelfer.github.io/tfel/web/tensors.html).
 
 material = MFrontMaterial(
-    os.path.join(current_path, "src/libBehaviour.so"),
-    "LogarithmicStrainPlasticity",
-    material_properties={"YieldStrength": 250e6, "HardeningSlope": 1e6},
+    "/home/hannahk/Dokumente/digitale_Ablage_Promotion/01_Programs/dolfinx_materials/demos/mfront/finite_strain_elastoplasticity/src/libBehaviour.so", #os.path.join(current_path, "src/libBehaviour.so"),
+    "SaintVenantKirchhoffElasticity", #"LogarithmicStrainPlasticity",
+    material_properties={"YoungModulus":2e5,"PoissonRatio": 0.3}#material_properties={"YieldStrength": 250e6, "HardeningSlope": 1e6},
 )
 if rank == 0:
     print(material.behaviour.getBehaviourType())
@@ -203,17 +207,17 @@ load_steps = np.linspace(0.0, 1.0, Nincr + 1)
 vtk = io.VTKFile(domain.comm, f"results/{material.name}.pvd", "w")
 results = np.zeros((Nincr + 1, 2))
 for i, t in enumerate(load_steps[1:]):
-    selfweight.value[-1] = -50e6 * t
+    selfweight.value[-1] = -50e3 * t
 
-    converged, it = problem.solve(newton, print_solution=False)
+    converged, it = problem.solve(newton, print_solution=True)
 
     if rank == 0:
         print(f"Increment {i+1} converged in {it} iterations.")
 
-    p0 = qmap.project_on("EquivalentPlasticStrain", ("DG", 0))
+    #p0 = qmap.project_on("GreenL", ("DG", 0))
 
     vtk.write_function(u, t)
-    vtk.write_function(p0, t)
+    #vtk.write_function(p0, t)
 
     w = u.sub(2).collapse()
     local_max = max(np.abs(w.x.array))
