@@ -140,14 +140,21 @@ class QuadratureMap:
                 )
 
             Tang = self.jacobians[(dy, dx)]
-            if dx in self.gradients:
-                delta_dx = self.gradients[dx].variation(u, du)
-            elif dx in self.external_state_variables:
-                delta_dx = self.external_state_variables[dx].variation(u, du)
+            if dx == 'GreenLagrangeStrain':
+                delta_dx_DG = self.gradients['DeformationGradient'].variation(u, du)
+                DG = self.gradients['DeformationGradient']
+                F = ufl.Identity(len(u)) + ufl.grad(u)
+                Egl = (1/2)*(ufl.dot(F.T,F)-ufl.Identity(len(u)))
+                delta_dx = Egl.varition(u,du)
             else:
-                raise ValueError(
-                    f"Function '{dx}' to differentiate with is not a gradient or an external state variable."
-                )
+                if dx in self.gradients:
+                    delta_dx = self.gradients[dx].variation(u, du)
+                elif dx in self.external_state_variables:
+                    delta_dx = self.external_state_variables[dx].variation(u, du)
+                else:
+                    raise ValueError(
+                        f"Function '{dx}' to differentiate with is not a gradient or an external state variable."
+                    )
             tdg = my_dot(Tang, delta_dx)
             tangent_form += ufl.derivative(F, var_y, tdg)
         return tangent_form
