@@ -6,6 +6,8 @@
   "The Saint Venant - Kirchhoff hyper elastic behaviour"
 }
 
+@ProvidesTangentOperator;
+
 @AuxiliaryStateVariable StressStensor S;
 S.setEntryName("SecPiola");
 
