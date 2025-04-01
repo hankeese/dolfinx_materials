@@ -191,9 +191,11 @@ qmap.register_gradient("DeformationGradient", F(u))
 # where $\boldsymbol{f}$ is the self-weight.
 #
 # The corresponding Jacobian form is computed via automatic differentiation. As for the [small-strain elastoplasticity example](https://thelfer.github.io/mgis/web/mgis_fenics_small_strain_elastoplasticity.html), state variables include the `ElasticStrain` and `EquivalentPlasticStrain` since the same behavior is used as in the small-strain case with the only difference that the total strain is now given by the Hencky strain measure. In particular, the `ElasticStrain` is still a symmetric tensor (vector of dimension 6). Note that it has not been explicitly defined as a state variable in the `MFront` behavior file since this is done automatically when using the `IsotropicPlasticMisesFlow` parser.
+#problem = mgis.fenics.MFrontNonlinearProblem(u, material, quadrature_degree=2,bcs=bcs)
 
 PK2 = qmap.fluxes["SecondPiolaKirchhoffStress"]
 Res = (ufl.dot(PK2, dEgl(u,v)) - ufl.dot(selfweight, v)) * qmap.dx
+#problem.residual = (ufl.dot(PK2, dEgl(u,v)) - ufl.dot(selfweight, v)) * problem.dx
 #Res = (ufl.dot(PK1,dF(v))-ufl.dot(selfweight,v))*qmap.dx
 Jac = qmap.derivative(Res, u, du)
 
@@ -201,6 +203,7 @@ Jac = qmap.derivative(Res, u, du)
 
 # + tags=["hide-output"]
 problem = NonlinearMaterialProblem(qmap, Res, Jac, u, bcs)
+#problem.compute_tangent_form()
 
 newton = NewtonSolver(comm)
 newton.rtol = 1e-4
