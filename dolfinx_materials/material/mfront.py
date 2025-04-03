@@ -44,6 +44,8 @@ class MFrontMaterial:
         parameters={},
         rotation_matrix=None,
         dt=0,
+        stress_measure = mgis_bv.FiniteStrainBehaviourOptionsStressMeasure.PK1,
+        tangent_operator = mgis_bv.FiniteStrainBehaviourOptionsTangentOperator.DPK1_DF,
     ):
         """
         Parameters
@@ -78,19 +80,17 @@ class MFrontMaterial:
         )
         self.dt = dt
         # Loading the behaviour
-        self.load_behaviour(self.path)
+        self.load_behaviour(self.path, stress_measure, tangent_operator)
 
         self.update_parameters(parameters)
 
-    def load_behaviour(self, path):
+    def load_behaviour(self, path, stress_measure, tangent_operator):
         self.is_finite_strain = mgis_bv.isStandardFiniteStrainBehaviour(path, self.name)
         if self.is_finite_strain:
             # finite strain options
             bopts = mgis_bv.FiniteStrainBehaviourOptions()
-            bopts.stress_measure = mgis_bv.FiniteStrainBehaviourOptionsStressMeasure.PK2
-            bopts.tangent_operator = (
-                mgis_bv.FiniteStrainBehaviourOptionsTangentOperator.DS_DEGL
-            )
+            bopts.stress_measure = stress_measure
+            bopts.tangent_operator = tangent_operator
             self.behaviour = mgis_bv.load(bopts, path, self.name, self.hypothesis)
         else:
             self.behaviour = mgis_bv.load(path, self.name, self.hypothesis)
