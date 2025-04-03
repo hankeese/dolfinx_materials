@@ -77,6 +77,7 @@ import dolfinx as dolx
 import matplotlib.pyplot as plt
 import os
 import ufl
+import mgis.behaviour as mgis_bv
 from petsc4py import PETSc
 from mpi4py import MPI
 from dolfinx import fem, mesh, io
@@ -145,7 +146,9 @@ material = MFrontMaterial(
     os.path.join(current_path, "src/libBehaviour.so"),
     "SaintVenantKirchhoffElasticity",
     hypothesis = 'plane_strain',
-    material_properties={"YoungModulus":2e5,"PoissonRatio": 0.3}
+    material_properties={"YoungModulus":2e5,"PoissonRatio": 0.3},
+    stress_measure = mgis_bv.FiniteStrainBehaviourOptionsStressMeasure.PK2,
+    tangent_operator = mgis_bv.FiniteStrainBehaviourOptionsTangentOperator.DS_DEGL,
 )
 
 # material = MFrontMaterial(
