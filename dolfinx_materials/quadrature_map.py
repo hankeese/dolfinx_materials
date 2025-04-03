@@ -8,6 +8,7 @@ from .utils import (
     to_mat,
     get_vals,
     update_vals,
+    symmetric_tensor_to_vector
 )
 from dolfinx.common import Timer
 from .quadrature_function import create_quadrature_function, QuadratureExpression
@@ -141,11 +142,15 @@ class QuadratureMap:
 
             Tang = self.jacobians[(dy, dx)]
             if dx == 'GreenLagrangeStrain':
-                delta_dx_DG = self.gradients['DeformationGradient'].variation(u, du)
-                DG = self.gradients['DeformationGradient']
-                F = ufl.Identity(len(u)) + ufl.grad(u)
-                Egl = (1/2)*(ufl.dot(F.T,F)-ufl.Identity(len(u)))
-                delta_dx = Egl.varition(u,du)
+                DG = ufl.Identity(len(u)) + ufl.grad(u)
+                Egl = symmetric_tensor_to_vector((1/2)*(ufl.dot(DG.T,DG)-ufl.Identity(len(u))))
+                Egl_fem_expression = fem.Expression(Egl, self.quadrature_points)
+                Egl_quadrature_expression = QuadratureExpression("Egl",
+                                                                 Egl_fem_expression,
+                                                                 self.mesh,
+                                                                 self.degree
+                                                                 )
+                delta_dx = Egl_quadrature_expression.variation(u,du)
             else:
                 if dx in self.gradients:
                     delta_dx = self.gradients[dx].variation(u, du)
