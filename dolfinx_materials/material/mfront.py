@@ -248,6 +248,13 @@ class MFrontMaterial:
 
     def integrate(self, eps):
         self.data_manager.s1.gradients[:, :] = eps
+        # TODO Clarify settings of K, if at all necessary, depending on the
+        # PK1/PK2 etc.
+        self.data_manager.allocateArrayOfTangentOperatorBlocks()
+        K = self.data_manager.K
+        K[:, 0, 0] = 4  # Consistent tangent operator
+        K[:, 0, 1] = 1  # 0 - Cauchy, 1 - PK2, 2 - PK1
+        K[:, 0, 2] = 1  # 0 - DCauchy/DDefGrad, 1 - DPK2/DS_DEGL, 2 - PK1/DDefGrad
         integrate_status = mgis_bv.integrate(
             self.data_manager, self.integration_type, self.dt, 0, self.data_manager.n
         )
@@ -255,7 +262,6 @@ class MFrontMaterial:
             warnings.warn(
                 "Integration of constitutive law has failed.", PerformanceWarning
             )
-        K = self.data_manager.K
 
         if self.has_internal_state_variables:
             isv = self.data_manager.s1.internal_state_variables
