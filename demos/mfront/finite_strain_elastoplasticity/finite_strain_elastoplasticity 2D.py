@@ -142,7 +142,7 @@ print(u.ufl_shape, V)
 # The `MFrontMaterial` instance is loaded from the `MFront` `LogarithmicStrainPlasticity` behavior. This behavior is a finite-strain behavior (`material.is_finite_strain=True`) which relies on a kinematic description using the total deformation gradient $\boldsymbol{F}$. By default, a `MFront` behavior always returns the Cauchy stress as the stress measure after integration. However, the stress variable dual to the deformation gradient is the first Piola-Kirchhoff (PK1) stress. An internal option of the MGIS interface is therefore used in the finite-strain context to return the PK1 stress as the "flux" associated to the "gradient" $\boldsymbol{F}$. Both quantities are non-symmetric tensors, aranged as a 9-dimensional vector in 3D following [`MFront` conventions on tensors](https://thelfer.github.io/tfel/web/tensors.html).
 
 material = MFrontMaterial(
-    "/home/hannahk/Dokumente/digitale_Ablage_Promotion/01_Programs/dolfinx_materials/demos/mfront/finite_strain_elastoplasticity/src/libBehaviour.so", #os.path.join(current_path, "src/libBehaviour.so"),
+    os.path.join(current_path, "src/libBehaviour.so"),
     "SaintVenantKirchhoffElasticity",
     hypothesis = 'plane_strain',
     material_properties={"YoungModulus":2e5,"PoissonRatio": 0.3}
