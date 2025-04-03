@@ -99,7 +99,7 @@ current_path = os.getcwd()
 print(current_path)
 
 length, width = 1.0, 0.04
-nx, ny = 10, 10
+nx, ny = 1, 10
 domain = mesh.create_rectangle(
     comm,
     [(0, -width / 2), (length, width / 2)],
