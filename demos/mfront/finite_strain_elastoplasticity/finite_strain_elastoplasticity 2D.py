@@ -181,7 +181,8 @@ def dEgl(u,v):
     return symmetric_tensor_to_vector((1/2)*(grad_v+grad_v.T+ufl.dot(grad_u.T,grad_v)+ufl.dot(grad_v.T,grad_u)))
 
 
-qmap = QuadratureMap(domain, 4, material)
+quadrature_degree = 4
+qmap = QuadratureMap(domain, quadrature_degree, material)
 qmap.register_gradient("DeformationGradient", F(u))
 # -
 
