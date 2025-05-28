@@ -136,7 +136,7 @@ selfweight = fem.Constant(domain, np.zeros((gdim,)))
 du = ufl.TrialFunction(V)
 v = ufl.TestFunction(V)
 u = fem.Function(V, name="Displacement")
-exit
+
 print(u.ufl_shape, V)
 # -
 
