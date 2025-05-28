@@ -99,7 +99,7 @@ current_path = os.getcwd()
 print(current_path)
 
 length, width = 1.0, 0.04
-nx, ny = 1, 10
+nx, ny = 10, 4
 domain = mesh.create_rectangle(
     comm,
     [(0, -width / 2), (length, width / 2)],
@@ -136,7 +136,7 @@ selfweight = fem.Constant(domain, np.zeros((gdim,)))
 du = ufl.TrialFunction(V)
 v = ufl.TestFunction(V)
 u = fem.Function(V, name="Displacement")
-
+exit
 print(u.ufl_shape, V)
 # -
 
@@ -150,13 +150,6 @@ material = MFrontMaterial(
     stress_measure = mgis_bv.FiniteStrainBehaviourOptionsStressMeasure.PK2,
     tangent_operator = mgis_bv.FiniteStrainBehaviourOptionsTangentOperator.DS_DEGL,
 )
-
-# material = MFrontMaterial(
-#     "/home/hannahk/Dokumente/digitale_Ablage_Promotion/01_Programs/dolfinx_materials/demos/mfront/finite_strain_elastoplasticity/src/libBehaviour.so", #os.path.join(current_path, "src/libBehaviour.so"),
-#     "LogarithmicStrainPlasticity",
-#     hypothesis = 'plane_strain',
-#     material_properties={"YieldStrength": 250e6, "HardeningSlope": 1e6},
-# )
 
 if rank == 0:
     print(material.behaviour.getBehaviourType())
@@ -181,7 +174,7 @@ def dEgl(u,v):
     return symmetric_tensor_to_vector((1/2)*(grad_v+grad_v.T+ufl.dot(grad_u.T,grad_v)+ufl.dot(grad_v.T,grad_u)))
 
 
-quadrature_degree = 4
+quadrature_degree = 2
 qmap = QuadratureMap(domain, quadrature_degree, material)
 qmap.register_gradient("DeformationGradient", F(u))
 # -
@@ -195,11 +188,10 @@ qmap.register_gradient("DeformationGradient", F(u))
 # where $\boldsymbol{f}$ is the self-weight.
 #
 # The corresponding Jacobian form is computed via automatic differentiation. As for the [small-strain elastoplasticity example](https://thelfer.github.io/mgis/web/mgis_fenics_small_strain_elastoplasticity.html), state variables include the `ElasticStrain` and `EquivalentPlasticStrain` since the same behavior is used as in the small-strain case with the only difference that the total strain is now given by the Hencky strain measure. In particular, the `ElasticStrain` is still a symmetric tensor (vector of dimension 6). Note that it has not been explicitly defined as a state variable in the `MFront` behavior file since this is done automatically when using the `IsotropicPlasticMisesFlow` parser.
-#problem = mgis.fenics.MFrontNonlinearProblem(u, material, quadrature_degree=2,bcs=bcs)
 
+#PK1 = qmap.fluxes["FirstPiolaKirchhoffStress"]
 PK2 = qmap.fluxes["SecondPiolaKirchhoffStress"]
 Res = (ufl.dot(PK2, dEgl(u,v)) - ufl.dot(selfweight, v)) * qmap.dx
-#problem.residual = (ufl.dot(PK2, dEgl(u,v)) - ufl.dot(selfweight, v)) * problem.dx
 #Res = (ufl.dot(PK1,dF(v))-ufl.dot(selfweight,v))*qmap.dx
 Jac = qmap.derivative(Res, u, du)
 
@@ -207,7 +199,6 @@ Jac = qmap.derivative(Res, u, du)
 
 # + tags=["hide-output"]
 problem = NonlinearMaterialProblem(qmap, Res, Jac, u, bcs)
-#problem.compute_tangent_form()
 
 newton = NewtonSolver(comm)
 newton.rtol = 1e-4
@@ -264,6 +255,7 @@ if rank==0:
     plt.plot(results[:, 0], results[:, 1], "-oC3")
     plt.xlabel("Displacement")
     plt.ylabel("Load")
+    plt.savefig('./displacement_PK2_10x_4y.pdf',bbox_inches='tight', format = 'pdf', dpi =  600)
     plt.show()
 
 # ## References
