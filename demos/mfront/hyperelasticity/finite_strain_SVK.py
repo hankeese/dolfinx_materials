@@ -12,55 +12,9 @@
 #     name: python3
 # ---
 
-# # Finite-strain elastoplasticity within the logarithmic strain framework
+# Simple test of using SaintVenantKirchhoff with 2nd PK stresses and Green Lagrange strains in a total Lagrangian formulation.
 #
-# This demo is dedicated to the resolution of a finite-strain elastoplastic problem using the logarithmic strain framework proposed in {cite:p}`miehe2002anisotropic`.
-#
-# ```{tip}
-# This simulation is a bit heavy to run so we suggest running it in parallel.
-# ```
-#
-# ## Logarithmic strains
-#
-# This framework expresses constitutive relations between the Hencky strain measure $\boldsymbol{H} = \dfrac{1}{2}\log (\boldsymbol{F}^\text{T}\cdot\boldsymbol{F})$ and its dual stress measure $\boldsymbol{T}$. This approach makes it possible to extend classical small strain constitutive relations to a finite-strain setting. In particular, the total (Hencky) strain can be split additively into many contributions (elastic, plastic, thermal, swelling, etc.) e.g. $\boldsymbol{H}=\boldsymbol{H}^e+\boldsymbol{H}^p$. Its trace is also linked with the volume change $J=\exp(\operatorname{tr}(\boldsymbol{H}))$. As a result, the deformation gradient $\boldsymbol{F}$ is used for expressing the Hencky strain $\boldsymbol{H}$, a small-strain constitutive law is then written for the $(\boldsymbol{H},\boldsymbol{T})$-pair and the dual stress $\boldsymbol{T}$ is then post-processed to an appropriate stress measure such as the Cauchy stress $\boldsymbol{\sigma}$ or Piola-Kirchhoff stresses.
-#
-# ## `MFront` implementation
-#
-# The logarithmic strain framework discussed in the previous paragraph consists merely as a pre-processing and a post-processing stages of the behavior integration. The pre-processing stage compute the logarithmic strain and its increment and the post-processing stage inteprets the stress resulting from the behavior integration as the dual stress $\boldsymbol{T}$ and convert it to the Cauchy stress.
-#
-# `MFront` provides the `@StrainMeasure` keyword that allows to specify which strain measure is used by the behavior. When choosing the `Hencky` strain measure, `MFront` automatically generates those pre- and post-processing stages, allowing the user to focus on the behavior integration.
-#
-# This leads to the following implementation (see the [small-strain elastoplasticity example](https://thelfer.github.io/mgis/web/mgis_fenics_small_strain_elastoplasticity.html) for details about the various implementations available):
-#
-# ```
-# @DSL Implicit;
-#
-# @Behaviour LogarithmicStrainPlasticity;
-# @Author Thomas Helfer/Jérémy Bleyer;
-# @Date 07 / 04 / 2020;
-#
-# @StrainMeasure Hencky;
-#
-# @Algorithm NewtonRaphson;
-# @Epsilon 1.e-14;
-# @Theta 1;
-#
-# @MaterialProperty stress s0;
-# s0.setGlossaryName("YieldStress");
-# @MaterialProperty stress H0;
-# H0.setEntryName("HardeningSlope");
-#
-# @Brick StandardElastoViscoPlasticity{
-#   stress_potential : "Hooke" {
-# 	    young_modulus : 210e9,
-#         poisson_ratio : 0.3
-#         },
-#   inelastic_flow : "Plastic" {
-#     criterion : "Mises",
-#     isotropic_hardening : "Linear" {H : "H0", R0 : "s0"}
-#   }
-# };
-# ```
+# 
 #
 # ## `FEniCSx` implementation
 #
